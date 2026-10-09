@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1b6b3a">
+<title>မုံရွာ အိမ်ခြံမြေ အကျိုးဆောင် ကိုအောင်မြင့်နိုင်</title>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--g:#1b6b3a;--gd:#14522c;--gold:#d4a017;--red:#d32f2f;--blue:#1976d2;--viber:#7360F2;--bg:#f4f6f4;--line:#e5e7eb;--mut:#6b7280;--sh:0 2px 10px rgba(0,0,0,.12)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Pyidaungsu','Myanmar Text',system-ui,Arial,sans-serif;background:var(--bg);color:#1a1a1a;display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+a,a:link,a:visited{color:inherit;text-decoration:none !important;border-bottom:none !important}
+.top{background:linear-gradient(135deg,var(--g),var(--gd));color:#fff;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 10px;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:9px;min-width:0;flex:1;overflow:hidden}
+.logo{width:40px;height:40px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.brand-text{min-width:0;overflow:hidden;flex:1}
+.brand-text b{display:block;font-size:17px;line-height:1.3;white-space:nowrap;font-weight:800;letter-spacing:-0.3px;width:max-content;will-change:transform}
+.brand-text b.running{animation:marquee 20s linear infinite}
+.brand-text b>span{display:inline-block;padding-right:60px}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.brand-text small{display:block;font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.top-r{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.visit{background:rgba(0,0,0,.28);border-radius:14px;padding:4px 8px;font-size:11px;font-weight:700;white-space:nowrap}
+.visit span{color:var(--gold)}
+.hcall{width:34px;height:34px;border-radius:50%;background:var(--gold);color:#1a1a1a;font-size:15px;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.25);border:none;padding:0}
+.hcall:active{transform:scale(.92)}
+.lock{width:32px;height:32px;border-radius:50%;border:none;background:#fff;font-size:14px;flex-shrink:0}
+.lock.out{background:var(--red)}
+.filters{background:#fff;padding:8px 10px 6px;box-shadow:0 2px 6px rgba(0,0,0,.06);flex-shrink:0;z-index:5}
+.filters[hidden]{display:none}
+.search{display:flex;align-items:center;gap:8px;background:#f1f4f1;border-radius:12px;padding:9px 12px;border:1.5px solid transparent}
+.search:focus-within{border-color:var(--g);background:#fff}
+.search input{border:none;outline:none;background:transparent;font:inherit;font-size:14px;width:100%}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:7px 0 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+#ward-chips{-webkit-mask-image:linear-gradient(to right,#000 92%,transparent);mask-image:linear-gradient(to right,#000 92%,transparent);padding-right:18px}
+.wh{font-size:11px;color:var(--g);font-weight:700;margin:7px 2px 0}
+.chip{flex:0 0 auto;border:1.5px solid var(--line);background:#fff;color:#333;border-radius:18px;padding:5px 11px;font-size:12px;font-weight:600;white-space:nowrap}
+.chip.on{background:var(--g);border-color:var(--g);color:#fff}
+.chip.rent.on{background:var(--blue);border-color:var(--blue)}
+.chip em{font-style:normal;font-size:10px;background:rgba(0,0,0,.1);border-radius:8px;padding:0 5px;margin-left:3px}
+.chip.on em{background:rgba(255,255,255,.3)}
+main{flex:1;position:relative;min-height:0}
+.view{position:absolute;inset:0;display:none}
+.view.on{display:block}
+#map{width:100%;height:100%;background:#e5e7eb}
+.mapload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:13px;pointer-events:none;text-align:center;padding:20px;line-height:1.6}
+.mapload.err{color:var(--red);font-weight:700}
+.mctl{position:absolute;right:10px;bottom:118px;z-index:1000;display:flex;flex-direction:column;gap:8px}
+.mbtn{width:42px;height:42px;border-radius:12px;border:none;background:#fff;box-shadow:var(--sh);font-size:17px}
+.mbtn:active{transform:scale(.92)}
+.tour{border-radius:22px;width:auto;padding:0 13px;font-size:12px;font-weight:700;background:linear-gradient(135deg,var(--gold),#b8860b)}
+.tour.play{background:var(--red);color:#fff}
+.car{position:absolute;left:0;right:0;bottom:8px;z-index:1000;pointer-events:none}
+.ctrack{display:flex;gap:8px;overflow-x:auto;padding:4px 10px;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.ctrack::-webkit-scrollbar{display:none}
+.mc{pointer-events:auto;flex:0 0 min(290px,82vw);scroll-snap-align:center;display:flex;gap:10px;background:#fff;border-radius:14px;padding:7px;box-shadow:var(--sh);border:2px solid transparent;cursor:pointer}
+.mc.on{border-color:var(--g)}
+.mc img{width:84px;height:84px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#eee}
+.mc .t{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.mc b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc .pr{color:var(--red);font-weight:800;font-size:15px}
+.mc .m{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc .cd{font-size:10px;color:var(--g);font-weight:800;letter-spacing:.5px;background:#f0f6f1;padding:2px 7px;border-radius:6px;display:inline-block;align-self:flex-start}
+.tag{display:inline-block;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:9px;align-self:flex-start}
+.empty{pointer-events:auto;flex:1;text-align:center;background:#fff;border-radius:14px;padding:18px;color:var(--mut);font-size:13px;box-shadow:var(--sh)}
+.lm{background:none;border:none}
+.pin{position:relative;width:64px;background:var(--c);color:#fff;border:2px solid #fff;border-radius:8px;padding:3px 2px;text-align:center;font-size:11px;font-weight:800;line-height:1.15;box-shadow:0 3px 8px rgba(0,0,0,.35);transition:transform .15s;transform-origin:50% 100%}
+.pin i{display:block;font-style:normal;font-size:8px;font-weight:600;opacity:.9}
+.pin b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pin:after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-7px;border:7px solid transparent;border-top-color:var(--c);border-bottom:0}
+.lm.on .pin{transform:scale(1.22)}
+#v-list{overflow-y:auto;padding:10px 10px 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;max-width:1200px;margin:0 auto}
+.lc{background:#fff;border-radius:16px;overflow:hidden;box-shadow:var(--sh);cursor:pointer}
+.lc:active{transform:scale(.98)}
+.lc .im{position:relative;aspect-ratio:4/3;background:#eceeec}
+.lc .im img{width:100%;height:100%;object-fit:cover;display:block}
+.lc .tag{position:absolute;top:8px;left:8px;font-size:11px;padding:3px 10px}
+.lc .cdtag{position:absolute;top:8px;right:8px;font-size:10px;padding:3px 9px;background:rgba(0,0,0,.65);color:#fff;border-radius:9px;font-weight:800;letter-spacing:.5px}
+.lc .photocount{position:absolute;bottom:8px;right:8px;font-size:10px;padding:3px 9px;background:rgba(0,0,0,.7);color:#fff;border-radius:9px;font-weight:700}
+.lc .bd{padding:9px 12px 12px}
+.lc .pr{color:var(--red);font-weight:800;font-size:18px}
+.lc h3{font-size:14px;margin:2px 0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lc .m{font-size:12px;color:var(--mut);line-height:1.6}
+.sk{height:250px;border-radius:16px;background:linear-gradient(90deg,#eceeec 25%,#f6f7f6 50%,#eceeec 75%);background-size:200% 100%;animation:sh 1.2s infinite}
+@keyframes sh{to{background-position:-200% 0}}
+.none{grid-column:1/-1;text-align:center;color:var(--mut);padding:50px 10px;font-size:14px;line-height:1.8}
+#v-dash{overflow-y:auto;padding:12px 12px 20px}
+.dwrap{max-width:900px;margin:0 auto}
+.st{font-size:14px;font-weight:700;color:var(--gd);margin:16px 0 8px;display:flex;align-items:center;gap:7px}
+.st:before{content:"";width:4px;height:15px;background:var(--gold);border-radius:2px}
+.st:first-child{margin-top:0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px}
+.sc{background:#fff;border-radius:14px;padding:12px;box-shadow:var(--sh)}
+.sc small{display:block;font-size:11px;color:var(--mut)}
+.sc b{display:block;font-size:24px;margin:2px 0}
+.sc span{font-size:10px;color:var(--mut)}
+.panel{background:#fff;border-radius:14px;padding:13px;box-shadow:var(--sh)}
+.row{margin-bottom:11px}
+.row:last-child{margin-bottom:0}
+.row .tp{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;gap:8px}
+.row .tp span:last-child{color:var(--mut);white-space:nowrap}
+.bar{height:9px;background:#eef0ee;border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--g),var(--gd))}
+.pn{font-weight:700;color:var(--red)}
+.sum{background:#fffbea;border-left:3px solid var(--gold);padding:9px 11px;border-radius:6px;font-size:12px;line-height:1.7;margin-bottom:12px}
+.ri{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0;cursor:pointer}
+.ri:last-child{border:none}
+.ri img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:#eee}
+.ri div{flex:1;min-width:0;font-size:12px}
+.ri div b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri div span{color:var(--mut);font-size:11px}
+.ri .p{color:var(--g);font-weight:700;font-size:12px;white-space:nowrap}
+nav{display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);flex-shrink:0;z-index:20}
+.nv{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:7px 2px 6px;border:none;background:none;color:#6b7280;font-size:10px;font-weight:700;text-decoration:none}
+.nv .ic{font-size:20px;height:24px;display:flex;align-items:center}
+.nv.on{color:var(--g)}
+.nv.call{color:#8a6a00}
+.nv.call .ic{background:var(--gold);color:#1a1a1a;width:34px;height:34px;border-radius:50%;justify-content:center;font-size:17px;margin-top:-14px;box-shadow:0 3px 8px rgba(212,160,23,.5)}
+.nv.vb{color:var(--viber)}
+.nv.vb svg{width:22px;height:22px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;display:none;align-items:flex-end;justify-content:center}
+.modal.open{display:flex}
+.box{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:760px;max-height:94dvh;overflow-y:auto;position:relative;animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(60px);opacity:.4}to{transform:none;opacity:1}}
+.x{position:absolute;top:10px;right:10px;z-index:5;width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:16px}
+.gal{position:relative;background:#000;height:270px;border-radius:20px 20px 0 0;overflow:hidden}
+.gtrack{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.gtrack::-webkit-scrollbar{display:none}
+.gtrack img{flex:0 0 100%;width:100%;height:100%;object-fit:contain;scroll-snap-align:center}
+.gal iframe{width:100%;height:100%;border:none}
+.gn{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.9);font-size:15px}
+.gp{left:8px}.gx{right:8px}
+.gc{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.7);color:#fff;font-size:11px;padding:3px 10px;border-radius:14px}
+.dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:5}
+.dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.4);transition:all .2s}
+.dots i.on{background:#fff;width:18px;border-radius:4px}
+.dbody{padding:14px 16px 4px}
+.dbody h2{font-size:17px;margin:2px 0}
+.dcode{display:inline-block;background:#f0f6f1;color:var(--g);font-size:12px;font-weight:800;letter-spacing:1.5px;padding:4px 11px;border-radius:8px;margin:8px 0 6px;border:1.5px solid #d5e5da}
+.dprice{font-size:22px;font-weight:800;color:var(--red);margin-bottom:10px}
+.agent{display:flex;gap:10px;align-items:center;background:#f0f6f1;border-radius:11px;padding:9px 12px;margin-bottom:12px;font-size:13px;line-height:1.5}
+.agent .av{width:36px;height:36px;border-radius:50%;background:var(--g);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.agent strong{color:var(--g)}
+.agent a,.agent a:link,.agent a:visited{color:var(--g);text-decoration:none !important;font-weight:700;border:none !important}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.di{background:#f7f9f7;border-radius:10px;padding:9px 11px;font-size:13px}
+.di small{display:block;font-size:10px;color:#777;margin-bottom:2px}
+.desc{background:#fffbea;border-left:3px solid var(--gold);padding:10px 12px;border-radius:6px;font-size:13px;color:#444;line-height:1.8;margin-bottom:12px;white-space:pre-wrap}
+.owner{background:#fff8e1;border:1.5px dashed var(--gold);border-radius:12px;padding:11px 12px;margin-bottom:12px;font-size:12px}
+.owner h4{font-size:11px;color:#886a0f;margin-bottom:6px}
+.owner p{padding:4px 0;border-bottom:1px solid #f0e5b8;word-break:break-word}
+.owner p:last-of-type{border:none}
+.owner a{display:block;text-align:center;margin-top:8px;padding:10px;background:var(--g);color:#fff;border-radius:9px;text-decoration:none !important;font-weight:700;font-size:13px}
+.locked{background:#f3f4f6;border:1.5px dashed #cbd5e1;border-radius:12px;padding:13px;margin-bottom:12px;text-align:center;color:#64748b;font-size:12px;line-height:1.7}
+.locked b{color:#334155;font-size:13px;display:block;margin-bottom:6px}
+.locked .bl{font-size:16px;font-weight:700;letter-spacing:3px;color:#334155;margin:6px 0}
+.acts{position:sticky;bottom:0;background:#fff;display:flex;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.bt{flex:1;padding:12px 6px;border:none;border-radius:11px;font-size:13px;font-weight:700;text-decoration:none !important;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px}
+.bt.c{background:var(--g);color:#fff;flex:1.4}
+.bt.s{background:var(--gold);color:#1a1a1a}
+.bt.m{background:#eef2ee;color:#333}
+.login{position:fixed;inset:0;background:linear-gradient(135deg,#1b6b3a,#14522c);z-index:10000;display:none;align-items:center;justify-content:center;padding:20px}
+.login.show{display:flex}
+.lcard{background:#fff;border-radius:20px;padding:26px 22px 20px;max-width:340px;width:100%;position:relative}
+.lcard .cl{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;border:none;background:#f0f0f0}
+.lcard h2{text-align:center;font-size:17px;color:var(--gd);margin-bottom:3px}
+.lcard .sb{text-align:center;font-size:11px;color:var(--mut);margin-bottom:16px}
+.lcard label{display:block;font-size:11px;font-weight:700;color:#555;margin:10px 0 4px}
+.lcard input{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:9px;font:inherit;font-size:14px;outline:none}
+.lcard input:focus{border-color:var(--g)}
+.err{color:var(--red);font-size:11px;text-align:center;min-height:16px;margin:8px 0 2px}
+.lgo{width:100%;padding:12px;background:linear-gradient(135deg,var(--g),var(--gd));color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1b6b3a;color:#fff;padding:10px 20px;border-radius:24px;font-size:12px;z-index:99999;box-shadow:var(--sh);max-width:90vw;text-align:center}
+@media(min-width:769px){.modal{align-items:center;padding:16px}.box{border-radius:20px}.gal{height:360px}.mc{flex-basis:300px}.mctl{bottom:120px}}
+@media(prefers-reduced-motion:reduce){.brand-text b.running{animation:none}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="logo" id="brand-logo">🏠</div>
+    <div class="brand-text" id="brand-text">
+      <b id="brand-title">မုံရွာ အိမ်ခြံမြေ အကျိုးဆောင်</b>
+      <small>ကိုအောင်မြင့်နိုင် • 09 79 65 45 226</small>
+    </div>
+  </div>
+  <div class="top-r">
+    <div class="visit">👁️ <span id="visitor">...</span></div>
+    <a class="hcall" href="tel:09796545226" onclick="return makeCall(event)" aria-label="ဖုန်းဆက်" title="ဖုန်းဆက်">📞</a>
+    <button class="lock" id="lock-btn" onclick="toggleLogin()" aria-label="Admin">🔒</button>
+  </div>
+</header>
+
+<div class="filters" id="filters">
+  <label class="search"><span>🔍</span><input type="search" id="search" placeholder="ရပ်ကွက်၊ လမ်း၊ code ရှာရန်..."></label>
+  <div class="wh" id="ward-hint"></div>
+  <div class="chips" id="ward-chips"></div>
+  <div class="chips" id="status-chips"></div>
+</div>
+
+<main>
+  <section class="view on" id="v-map">
+    <div id="map"></div>
+    <div class="mapload" id="mapload">🗺️ မြေပုံ ဖွင့်နေသည်...</div>
+    <div class="mctl">
+      <button class="mbtn" id="layer-btn" onclick="switchLayer()" title="Map">🗺️</button>
+      <button class="mbtn" onclick="locateMe()" title="တည်နေရာ">📍</button>
+      <button class="mbtn tour" id="tour-btn" onclick="toggleTour()">▶️ Auto</button>
+    </div>
+    <div class="car"><div class="ctrack" id="ctrack"></div></div>
+  </section>
+  <section class="view" id="v-list"><div class="grid" id="grid"></div></section>
+  <section class="view" id="v-dash"><div class="dwrap" id="dash"></div></section>
+</main>
+
+<nav>
+  <button class="nv on" data-v="map" onclick="setView('map')"><span class="ic">🗺️</span>မြေပုံ</button>
+  <button class="nv" data-v="list" onclick="setView('list')"><span class="ic">📋</span>စာရင်း</button>
+  <a class="nv call" href="tel:09796545226" onclick="return makeCall(event)"><span class="ic">📞</span>ဖုန်းဆက်</a>
+  <a class="nv vb" href="viber://chat?number=%2B959796545226" onclick="return openViber(event)">
+    <span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.4 0C9.473.028 5.333.344 3.02 2.467 1.302 4.187.696 6.7.633 9.817c-.06 3.11.535 5.928 2.564 7.953 1.5 1.5 3.9 2.1 6.582 2.32v3.16c0 .336.36.518.634.318l3.15-2.46c2.02.003 4.07-.32 5.58-1.55 1.79-1.47 2.61-4.15 2.84-6.78.23-2.63.16-5.13-1.09-6.98C18.7.6 14.86 0 11.4 0zm.86 3.4c2.34 0 5.32.66 6.27 3.35.53 1.51.48 3.02.27 4.35-.2 1.4-.6 2.6-1.4 3.36-.53.53-1.13.77-2.55.87-1 .06-2.27.07-2.27.07v2.2c0 .5-.5.7-.9.4l-2.1-1.6c-1.87-.1-3.66-.4-4.63-1.47-.9-.98-1.2-2.8-1.1-4.55.1-1.75.5-3.5 1.5-4.5.95-.94 3.3-1.5 5.4-1.55 1.13-.03 1.35 0 1.5 0zm-4.4 1.7c-.3 0-.55.1-.77.34-.5.5-.68 1.5-.4 2.5.5 1.7 2.3 3.5 4 4 .9.3 1.9.1 2.4-.4.2-.2.35-.5.35-.8 0-.2-.1-.4-.3-.55-.4-.3-1-.6-1.35-.7-.15-.05-.35 0-.5.15-.2.25-.5.55-.7.6-.75.25-2-1-2.25-1.75.05-.2.35-.5.6-.7.15-.15.2-.35.15-.5-.1-.35-.4-.95-.7-1.35-.15-.2-.35-.3-.55-.3zm4.03.8c-.24 0-.44.2-.44.43 0 .24.2.43.44.43 1.02 0 1.94.44 2.6 1.14.63.68.98 1.55.98 2.6 0 .24.2.43.44.43.24 0 .43-.2.43-.44 0-1.26-.44-2.36-1.2-3.18-.8-.85-1.92-1.4-3.25-1.4zm-.05 1.55c-.23 0-.42.2-.42.43 0 .24.19.43.42.43.55 0 1.04.23 1.4.6.35.37.55.87.55 1.4 0 .24.2.43.43.43.24 0 .43-.2.43-.43 0-.74-.3-1.42-.8-1.92-.5-.5-1.18-.8-1.9-.8-.04-.13-.07-.14-.1-.14z"/></svg></span>Viber
+  </a>
+  <button class="nv" data-v="dash" onclick="setView('dash')"><span class="ic">📊</span>စာရင်းချုပ်</button>
+</nav>
+
+<div class="modal" id="modal">
+  <div class="box">
+    <button class="x" onclick="closeDetail()">✕</button>
+    <div class="gal" id="gal"></div>
+    <div class="dbody">
+      <span class="tag" id="d-tag"></span>
+      <div class="dcode" id="d-code"></div>
+      <h2 id="d-title"></h2>
+      <div class="dprice" id="d-price"></div>
+      <div class="agent">
+        <div class="av">👤</div>
+        <div>အကျိုးဆောင် — <strong>ကိုအောင်မြင့်နိုင်</strong><br>📞 <a href="tel:09796545226" onclick="return makeCall(event)">09 79 65 45 226</a></div>
+      </div>
+      <div id="owner-section"></div>
+      <div class="dg">
+        <div class="di"><small>📐 အကျယ်</small><span id="d-area"></span></div>
+        <div class="di"><small>📍 ရပ်ကွက်</small><span id="d-ward"></span></div>
+        <div class="di"><small>🗺️ အမှတ်</small><span id="d-addr"></span></div>
+        <div class="di"><small>🏷️ အမျိုးအစား</small><span id="d-type"></span></div>
+      </div>
+      <div class="desc" id="d-desc"></div>
+    </div>
+    <div class="acts">
+      <a href="tel:09796545226" class="bt c" onclick="return makeCall(event)">📞 ဖုန်းဆက်ရန်</a>
+      <button class="bt s" onclick="shareProperty()">🔗 Share</button>
+      <button class="bt m" onclick="flyToFromDetail()">🗺️ မြေပုံ</button>
+    </div>
+  </div>
+</div>
+
+<div class="login" id="login">
+  <div class="lcard">
+    <button class="cl" onclick="toggleLogin()">✕</button>
+    <h2>🔐 Admin Login</h2>
+    <p class="sb">စီမံခန့်ခွဲသူ ဝင်ရန်</p>
+    <label>👤 Username</label>
+    <input type="text" id="l-user" autocomplete="username">
+    <label>🔑 Password</label>
+    <input type="password" id="l-pass" autocomplete="current-password">
+    <div class="err" id="l-err"></div>
+    <button class="lgo" onclick="doLogin()">🔓 Login</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const SHEET_URL="https://docs.google.com/spreadsheets/d/1dkVw7mnbkqSO9B9NCH1b5OiPbNJ2DXvqjbYuT8DvSVI/export?format=csv";
+const USE_SAMPLE_DATA=false;
+const ADMIN_USER=atob("YXVuZ215aW50bmFpbmc=");
+const ADMIN_PASS=atob("YW1uMDM1NDcy");
+const AUTH_KEY="monywa_admin_session";
+const PHONE="09796545226";
+const PHONE_DISPLAY="09 79 65 45 226";
+const VIBER_NUMBER="+959796545226";
+const CACHE_KEY="mw_sheet_cache_v1";
+const VISIT_FALLBACK_KEY="mw_visit_local";
+const COUNT_OFFSET=0;
+const SAMPLE_PHOTOS=10;
+const USE_SAMPLE_PHOTOS=true;
+const STATUS={sale:{label:"ရောင်းရန်",color:"#1b6b3a",icon:"🟢"},rent:{label:"ဌားရန်",color:"#1976d2",icon:"🔵"}};
+const NOIMG="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='100%' height='100%' fill='%23e5e7eb'/><text x='50%' y='52%' text-anchor='middle' fill='%239ca3af' font-size='22' font-family='sans-serif'>No Image</text></svg>";
+const ALBUMIMG="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='100%' height='100%' fill='%231b6b3a'/><text x='50%' y='52%' text-anchor='middle' fill='white' font-size='26' font-family='sans-serif'>Album</text></svg>";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* မြန်မာဂဏန်း → အင်္ဂလိပ်ဂဏန်း */
+function mmToEn(s){if(s==null)return s;const mm='၀၁၂၃၄၅၆၇၈၉',en='0123456789';return String(s).replace(/[၀-၉]/g,d=>en[mm.indexOf(d)]);}
+
+let properties=[],filtered=[],activeWard='all',activeStatus='all',searchText='';
+let map,markerLayer,markers={},layers={},layerKey='sat';
+let IS_ADMIN=false;try{IS_ADMIN=localStorage.getItem(AUTH_KEY)==="yes"}catch(e){}
+let activeIdx=0,dashDirty=true,curView='map';
+const urlAdmin=new URLSearchParams(location.search).get('admin')==='1'||location.hash==='#admin';
+
+/* ===== MARQUEE — အမြဲ ပြေး ===== */
+function initMarquee(){
+  const el=$('brand-title');
+  if(!el)return;
+  if(el.classList.contains('running'))return;
+  const txt=el.textContent.trim();
+  if(!txt)return;
+  el.innerHTML='<span>'+txt+'</span><span>'+txt+'</span>';
+  el.classList.add('running');
+}
+
+/* ===== SAMPLE PHOTO ===== */
+const SAMPLE_VIEWS=['Front view','Side view','Road side','Full plot','Back view','Surroundings','Road access','Soil view','Evening view','Far view'];
+const sampleCache=new Map();
+function makeSamplePhoto(id,i){
+  const key=id+'-'+i;
+  if(sampleCache.has(key))return sampleCache.get(key);
+  const h=(id*47+i*31)%360,sx=110+((i*83+id*17)%580),sy=85+(i%3)*25,o1=(i%3)*30,o2=(i%2)*20;
+  const view=SAMPLE_VIEWS[i%SAMPLE_VIEWS.length];
+  const plotNo=((id-1)%29)+1;
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">'+
+    '<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0" stop-color="hsl('+h+',70%,72%)"/>'+
+    '<stop offset="1" stop-color="hsl('+((h+30)%360)+',80%,90%)"/>'+
+    '</linearGradient></defs>'+
+    '<rect width="800" height="600" fill="url(#s)"/>'+
+    '<circle cx="'+sx+'" cy="'+sy+'" r="42" fill="#fff7c2" opacity="0.9"/>'+
+    '<ellipse cx="'+(300+(i*37)%300)+'" cy="120" rx="85" ry="22" fill="#fff" opacity="0.75"/>'+
+    '<path d="M0 330 Q200 '+(285+(i%4)*12)+' 400 330 T800 320 L800 600 L0 600Z" fill="hsl(120,38%,'+(38+(i%3)*4)+'%)"/>'+
+    '<polygon points="'+(260-o1)+',520 '+(540+o1)+',520 '+(470+o2)+',385 '+(330-o2)+',385" fill="hsl(95,48%,56%)" stroke="#fff" stroke-width="5" stroke-dasharray="14 10"/>'+
+    '<rect x="20" y="20" width="130" height="38" rx="19" fill="rgba(0,0,0,0.45)"/>'+
+    '<text x="85" y="46" text-anchor="middle" fill="#fff" font-size="20" font-weight="bold" font-family="sans-serif">SAMPLE</text>'+
+    '<rect y="540" width="800" height="60" fill="rgba(0,0,0,0.55)"/>'+
+    '<text x="24" y="579" fill="#fff" font-size="24" font-family="sans-serif">Plot '+plotNo+' - '+view+' - '+(i+1)+'/'+SAMPLE_PHOTOS+'</text>'+
+    '</svg>';
+  const url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  sampleCache.set(key,url);
+  return url;
+}
+function pic(u){if(typeof u==='string'&&u.startsWith('sample:')){const a=u.split(':');return makeSamplePhoto(+a[1],+a[2]);}return u||NOIMG;}
+
+/* ===== CSV ===== */
+function parseCSVText(t){
+  const rows=[];let row=[],cur='',q=false;
+  for(let i=0;i<t.length;i++){
+    const c=t[i];
+    if(q){if(c==='"'){if(t[i+1]==='"'){cur+='"';i++}else q=false}else cur+=c;}
+    else if(c==='"')q=true;
+    else if(c===','){row.push(cur);cur=''}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(cur);cur='';if(row.some(v=>v.trim()))rows.push(row);row=[];}
+    else cur+=c;
+  }
+  row.push(cur);if(row.some(v=>v.trim()))rows.push(row);
+  return rows;
+}
+function parseCSV(text){
+  const rows=parseCSVText(text);
+  if(rows.length<2)return [];
+  const headers=rows[0].map(h=>h.trim().toLowerCase());
+  const out=[];
+  for(let i=1;i<rows.length;i++){
+    if(rows[i].length<3)continue;
+    const o={};headers.forEach((h,k)=>o[h]=(rows[i][k]||'').trim());
+    out.push(o);
+  }
+  return out;
+}
+const isImgurAlbum=s=>/imgur\.com\/(?:a|gallery)\/([a-zA-Z0-9]+)/.test(s||'');
+const getImgurAlbumId=s=>{const m=(s||'').match(/imgur\.com\/(?:a|gallery)\/([a-zA-Z0-9]+)/);return m?m[1]:null;};
+function convert(rows){
+  return rows.map((r,idx)=>{
+    const raw=(r.photos||'').trim();
+    const isAlbum=isImgurAlbum(raw)&&!raw.includes(',');
+    const id=parseInt(mmToEn(r.id))||idx+1;
+    let photos,isSample=false;
+    if(isAlbum)photos=[raw];
+    else if(raw)photos=raw.split(',').map(s=>s.trim()).filter(Boolean);
+    else if(USE_SAMPLE_PHOTOS){photos=Array.from({length:SAMPLE_PHOTOS},(_,i)=>'sample:'+id+':'+i);isSample=true;}
+    else photos=[NOIMG];
+    let st=(r.status||'sale').toLowerCase().trim();
+    st=(st==='rent'||st==='ဌားရန်'||st==='ငှားရန်')?'rent':'sale';
+    return{
+      id,code:(r.code||'').toUpperCase().trim(),
+      title:r.title||'',ward:r.ward||'',type:r.type||'မြေကွက်',status:st,
+      price:r.price||'',priceNum:parseFloat(mmToEn(r.pricenum))||0,
+      area:r.area||'',address:r.address||'',
+      lat:parseFloat(mmToEn(r.lat))||0,lng:parseFloat(mmToEn(r.lng))||0,
+      desc:r.desc||'',photos,photosRaw:raw,isAlbum,isSample
+    };
+  });
+}
+const thumbOf=p=>p.isAlbum?ALBUMIMG:pic(p.photos[0]);
+const sizeText=p=>p.area.replace(/\s*x\s*/i,"×").replace(/\s*ပေ\s*/i,"").replace(/အကျယ်\s*/i,"").trim();
+
+function setData(csv){applyProps(convert(parseCSV(csv)))}
+function applyProps(list){properties=list;dashDirty=true;renderChips();applyFilters(true);if(curView==='dash')buildDashboard();}
+
+async function fetchWithTimeout(url,ms){
+  ms=ms||8000;
+  const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),ms);
+  try{const r=await fetch(url,{signal:ctrl.signal});clearTimeout(t);return r;}
+  catch(e){clearTimeout(t);throw e;}
+}
+
+/* ===== MAP ===== */
+function initMap(){
+  if(map)return;
+  if(typeof L==='undefined'){$('mapload').textContent='⚠️ မြေပုံ library ဖွင့်လို့ မရပါ';$('mapload').classList.add('err');return;}
+  try{
+    map=L.map('map',{zoomControl:false}).setView([22.1087,95.1358],13);
+    L.control.zoom({position:'topright'}).addTo(map);
+    const opt={maxZoom:20,subdomains:['mt0','mt1','mt2','mt3'],attribution:'© Google Maps'};
+    layers.map=L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',opt);
+    layers.sat=L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',opt);
+    layers.sat.addTo(map);
+    markerLayer=L.layerGroup().addTo(map);
+    map.on('dragstart',()=>{stopTour();pauseAuto()});
+    const ml=$('mapload');if(ml)ml.style.display='none';
+    renderMarkers();fitMap();
+  }catch(err){$('mapload').textContent='⚠️ မြေပုံ ဖွင့်လို့ မရပါ: '+err.message;$('mapload').classList.add('err');}
+}
+function switchLayer(){
+  if(!map)return;
+  map.removeLayer(layers[layerKey]);
+  layerKey=layerKey==='sat'?'map':'sat';
+  layers[layerKey].addTo(map);
+  $('layer-btn').textContent=layerKey==='sat'?'🗺️':'🛰️';
+}
+function locateMe(){if(!map)return;map.once('locationerror',()=>showToast('📍 တည်နေရာ ရှာမတွေ့ပါ'));map.locate({setView:true,maxZoom:16});}
+function pinIcon(p){
+  const st=STATUS[p.status]||STATUS.sale;
+  const label=p.code?p.code:sizeText(p);
+  return L.divIcon({className:'lm',html:'<div class="pin" style="--c:'+st.color+'"><b>'+esc(label)+'</b><i>'+st.label+'</i></div>',iconSize:[64,44],iconAnchor:[32,44]});
+}
+function renderMarkers(){
+  if(!map||!markerLayer)return;
+  markerLayer.clearLayers();markers={};
+  filtered.forEach(p=>{
+    if(!p.lat||!p.lng)return;
+    const m=L.marker([p.lat,p.lng],{icon:pinIcon(p)}).addTo(markerLayer);
+    m.on('click',()=>{stopTour();pauseAuto();const i=filtered.indexOf(p);selectIdx(i,{scroll:true,fly:true})});
+    markers[p.id]=m;
+  });
+  markActive();
+}
+function markActive(){
+  const cur=filtered[activeIdx];
+  Object.keys(markers).forEach(id=>{
+    const m=markers[id],on=cur&&String(cur.id)===id;
+    if(m._icon)m._icon.classList.toggle('on',on);
+    m.setZIndexOffset(on?1000:0);
+  });
+}
+function fitMap(){
+  if(!map)return;
+  const pts=filtered.filter(p=>p.lat&&p.lng);
+  if(pts.length>1)map.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lng])),{paddingTopLeft:[40,40],paddingBottomRight:[40,130],maxZoom:15});
+  else if(pts.length===1)map.flyTo([pts[0].lat,pts[0].lng],15,{duration:.6});
+}
+
+/* ===== FILTERS ===== */
+function renderChips(){
+  const wards=[...new Set(properties.map(p=>p.ward).filter(Boolean))].sort();
+  let h='<button class="chip '+(activeWard==='all'?'on':'')+'" data-v="all">📍 အားလုံး <em>'+properties.length+'</em></button>';
+  wards.forEach(w=>{const c=properties.filter(p=>p.ward===w).length;h+='<button class="chip '+(activeWard===w?'on':'')+'" data-v="'+esc(w)+'">'+esc(w)+' <em>'+c+'</em></button>';});
+  const wcEl=$('ward-chips'),keep=wcEl.scrollLeft;
+  wcEl.innerHTML=h;wcEl.scrollLeft=keep;
+  $('ward-hint').textContent=wards.length?'📍 ရပ်ကွက် '+wards.length+' ခု — ဘေးသို့ ဆွဲကြည့်ပါ':'';
+  let s='<button class="chip '+(activeStatus==='all'?'on':'')+'" data-v="all">🏷️ အားလုံး</button>';
+  Object.entries(STATUS).forEach(([k,v])=>{
+    const c=properties.filter(p=>p.status===k).length;
+    s+='<button class="chip '+(k==='rent'?'rent':'')+' '+(activeStatus===k?'on':'')+'" data-v="'+k+'">'+v.icon+' '+v.label+' <em>'+c+'</em></button>';
+  });
+  $('status-chips').innerHTML=s;
+}
+function applyFilters(fit){
+  const s=searchText.toLowerCase();
+  filtered=properties.filter(p=>{
+    if(activeWard!=='all'&&p.ward!==activeWard)return false;
+    if(activeStatus!=='all'&&p.status!==activeStatus)return false;
+    if(s)return p.title.toLowerCase().includes(s)||p.ward.toLowerCase().includes(s)||p.address.toLowerCase().includes(s)||(p.code&&p.code.toLowerCase().includes(s));
+    return true;
+  });
+  activeIdx=0;stopTour();renderList();renderCarousel();renderMarkers();
+  if(fit)fitMap();
+}
+
+/* ===== LIST + CAROUSEL ===== */
+function renderList(){
+  if(!filtered.length){$('grid').innerHTML='<div class="none">🔍 ရှာဖွေမှု မတွေ့ပါ</div>';return;}
+  $('grid').innerHTML=filtered.map(p=>{
+    const st=STATUS[p.status]||STATUS.sale;
+    const photoCount=p.isAlbum?'📸':p.photos.length;
+    return '<div class="lc" data-id="'+p.id+'"><div class="im"><img src="'+esc(thumbOf(p))+'" loading="lazy" decoding="async" alt="" onerror="this.onerror=null;this.src=NOIMG"><span class="tag" style="background:'+st.color+'">'+st.label+'</span>'+(p.code?'<span class="cdtag">CODE NO. '+esc(p.code)+'</span>':'')+(photoCount?'<span class="photocount">📸 '+photoCount+'</span>':'')+'</div><div class="bd"><div class="pr">'+esc(p.price)+'</div><h3>'+esc(p.title)+'</h3><div class="m">📐 '+esc(p.area)+'<br>📍 '+esc(p.address||p.ward)+'</div></div></div>';
+  }).join('');
+}
+function renderCarousel(){
+  const t=$('ctrack');
+  if(!filtered.length){t.innerHTML='<div class="empty">🔍 ရှာဖွေမှု မတွေ့ပါ</div>';return;}
+  t.innerHTML=filtered.map((p,i)=>{
+    const st=STATUS[p.status]||STATUS.sale;
+    return '<div class="mc '+(i===activeIdx?'on':'')+'" data-i="'+i+'" data-id="'+p.id+'"><img src="'+esc(thumbOf(p))+'" loading="lazy" decoding="async" alt="" onerror="this.onerror=null;this.src=NOIMG"><div class="t"><span class="tag" style="background:'+st.color+'">'+st.label+'</span>'+(p.code?'<span class="cd">🏷️ CODE NO. '+esc(p.code)+'</span>':'')+'<b>'+esc(p.title)+'</b><span class="pr">'+esc(p.price)+'</span><span class="m">📐 '+esc(p.area)+' • 📍 '+esc(p.address||p.ward)+'</span></div></div>';
+  }).join('');
+  t.scrollLeft=0;
+}
+let progScroll=false,scDeb;
+function slideToCard(i){const t=$('ctrack'),c=t.querySelector('.mc[data-i="'+i+'"]');if(!c)return;progScroll=true;t.scrollTo({left:c.offsetLeft-(t.clientWidth-c.offsetWidth)/2,behavior:'smooth'});setTimeout(()=>progScroll=false,700);}
+function selectIdx(i,o){
+  o=o||{};const p=filtered[i];if(!p)return;activeIdx=i;
+  document.querySelectorAll('.mc').forEach(c=>c.classList.toggle('on',+c.dataset.i===i));
+  markActive();
+  if(o.scroll)slideToCard(i);
+  if(o.fly&&map&&p.lat&&p.lng)map.flyTo([p.lat,p.lng],Math.max(map.getZoom(),16),{duration:.7});
+}
+function detectCentered(){
+  if(progScroll)return;
+  const t=$('ctrack'),cards=t.querySelectorAll('.mc');
+  if(!cards.length)return;
+  const r=t.getBoundingClientRect(),mid=r.left+r.width/2;
+  let best=0,bd=1e9;
+  cards.forEach((c,i)=>{const b=c.getBoundingClientRect(),d=Math.abs(b.left+b.width/2-mid);if(d<bd){bd=d;best=i}});
+  if(best!==activeIdx)selectIdx(best,{fly:true});
+}
+
+/* ===== TOUR ===== */
+let tourTimer=null;
+function toggleTour(){tourTimer?stopTour(true):startTour();}
+function startTour(){
+  if(!filtered.length)return showToast('⚠️ မြေကွက် မရှိပါ');
+  setView('map');
+  let i=0;const step=()=>selectIdx(i,{scroll:true,fly:true});step();
+  tourTimer=setInterval(()=>{i=(i+1)%filtered.length;step();},5000);
+  const b=$('tour-btn');b.classList.add('play');b.textContent='⏸️ Pause';
+  showToast('▶️ Auto Play စတင်');
+}
+function stopTour(msg){
+  if(!tourTimer)return;clearInterval(tourTimer);tourTimer=null;
+  const b=$('tour-btn');b.classList.remove('play');b.textContent='▶️ Auto';
+  if(msg===true)showToast('⏸️ ရပ်');
+}
+
+/* ===== AUTO SLIDE ===== */
+let autoTimer=null,autoPausedUntil=0;
+function pauseAuto(){autoPausedUntil=Date.now()+6000;}
+function startAutoSlide(){
+  if(autoTimer)clearInterval(autoTimer);
+  autoTimer=setInterval(()=>{
+    if(tourTimer||cur||curView!=='map'||document.hidden)return;
+    if(Date.now()<autoPausedUntil||filtered.length<2)return;
+    selectIdx((activeIdx+1)%filtered.length,{scroll:true,fly:true});
+  },5000);
+}
+
+/* ===== WARD LOOP ===== */
+let wardPos=0,wardDir=1,wardHold=0,wardPausedUntil=0,wardLast=0;
+function pauseWard(){wardPausedUntil=Date.now()+6000;}
+function wardLoop(t){
+  requestAnimationFrame(wardLoop);
+  const dt=Math.min((t-wardLast)/1000,.1);wardLast=t;
+  const el=$('ward-chips'),now=Date.now();
+  if(document.hidden||curView==='dash'||activeWard!=='all'||$('login').classList.contains('show'))return;
+  if(el.scrollWidth<=el.clientWidth+4)return;
+  if(now<wardPausedUntil){wardPos=el.scrollLeft;return;}
+  if(now<wardHold)return;
+  const max=el.scrollWidth-el.clientWidth;
+  wardPos+=wardDir*(wardDir>0?55:200)*dt;
+  if(wardPos>=max){wardPos=max;wardDir=-1;wardHold=now+1500;}
+  else if(wardPos<=0){wardPos=0;wardDir=1;wardHold=now+1500;}
+  el.scrollLeft=wardPos;
+}
+
+/* ===== VIEWS ===== */
+function setView(v){
+  curView=v;if(v!=='map')stopTour();
+  document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
+  document.querySelectorAll('nav .nv[data-v]').forEach(e=>e.classList.toggle('on',e.dataset.v===v));
+  $('filters').hidden=(v==='dash');
+  if(v==='map')setTimeout(()=>map&&map.invalidateSize(),60);
+  if(v==='dash'&&dashDirty)buildDashboard();
+}
+
+/* ===== DETAIL ===== */
+let cur=null;
+function openDetail(id,pushHash){
+  const p=properties.find(x=>x.id===id);if(!p)return;cur=p;
+  const st=STATUS[p.status]||STATUS.sale;
+  const tag=$('d-tag');tag.textContent=st.label;tag.style.background=st.color;
+  const dc=$('d-code');
+  if(p.code){dc.textContent='🏷️ CODE NO. '+p.code;dc.style.display='inline-block';}
+  else dc.style.display='none';
+  $('d-title').textContent=p.title;$('d-price').textContent=p.price;
+  $('d-area').textContent=p.area;$('d-ward').textContent=p.ward;
+  $('d-addr').textContent=p.address;$('d-type').textContent=p.type;
+  $('d-desc').textContent=p.desc;$('d-desc').style.display=p.desc?'block':'none';
+  $('owner-section').innerHTML='<div class="locked"><b>🔒 ပိုင်ရှင် အချက်အလက် ကာကွယ်ထားပါသည်</b><div class="bl">××××××××××</div><small>ပိုင်ရှင်များ၏ ကိုယ်ရေးအချက်အလက်ကို လုံခြုံစွာ ကာကွယ်ပေးပါသည်။<br>စုံစမ်းလိုပါက ဆက်သွယ်ပါ။</small></div>';
+  renderGallery(p);
+  $('modal').classList.add('open');document.body.style.overflow='hidden';
+  $('modal').querySelector('.box').scrollTop=0;
+  if(pushHash!==false&&location.hash!=='#p'+p.id){try{history.pushState(null,'','#p'+p.id);}catch(e){}}
+}
+function closeDetail(){
+  $('modal').classList.remove('open');document.body.style.overflow='';
+  stopGalAuto();$('gal').innerHTML='';cur=null;
+  if(location.hash.startsWith('#p'))try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+}
+let galTimer=null,galPauseUntil=0;
+function pauseGal(){galPauseUntil=Date.now()+6000;}
+function stopGalAuto(){if(galTimer){clearInterval(galTimer);galTimer=null;}}
+function startGalAuto(n){
+  stopGalAuto();if(n<2)return;
+  galTimer=setInterval(()=>{
+    const t=$('gtrack');
+    if(!t||document.hidden||Date.now()<galPauseUntil)return;
+    const next=(Math.round(t.scrollLeft/t.clientWidth)+1)%n;
+    t.scrollTo({left:next*t.clientWidth,behavior:'smooth'});
+  },3000);
+}
+function renderGallery(p){
+  stopGalAuto();const g=$('gal');
+  if(p.isAlbum){const id=getImgurAlbumId(p.photosRaw);if(id){g.innerHTML='<iframe src="https://imgur.com/a/'+id+'/embed?pub=true" allowfullscreen scrolling="no"></iframe>';return;}}
+  const ph=p.photos.length?p.photos:[NOIMG];
+  const dotsHTML=ph.length>1?'<div class="dots" id="gdots">'+ph.map((_,i)=>'<i class="'+(i===0?'on':'')+'" data-i="'+i+'"></i>').join('')+'</div>':'';
+  g.innerHTML='<div class="gtrack" id="gtrack">'+ph.map((u,i)=>'<img src="'+esc(pic(u))+'" '+(i>1?'loading="lazy"':'')+' decoding="async" alt="" onerror="this.onerror=null;this.src=NOIMG">').join('')+'</div>'+(ph.length>1?'<button class="gn gp" onclick="gal(-1)">❮</button><button class="gn gx" onclick="gal(1)">❯</button><div class="gc" id="gc">1 / '+ph.length+'</div>':'')+dotsHTML;
+  if(ph.length>1){
+    const t=$('gtrack');
+    const upd=()=>{const idx=Math.round(t.scrollLeft/t.clientWidth);$('gc').textContent=(idx+1)+' / '+ph.length;const dots=$('gdots');if(dots)dots.querySelectorAll('i').forEach((d,i)=>d.classList.toggle('on',i===idx));};
+    t.addEventListener('scroll',upd,{passive:true});
+    t.addEventListener('touchstart',pauseGal,{passive:true});
+    t.addEventListener('mousedown',pauseGal,{passive:true});
+    t.addEventListener('wheel',pauseGal,{passive:true});
+    const dots=$('gdots');
+    if(dots)dots.addEventListener('click',e=>{const d=e.target.closest('i');if(!d)return;pauseGal();t.scrollTo({left:(+d.dataset.i)*t.clientWidth,behavior:'smooth'});});
+    startGalAuto(ph.length);
+  }
+}
+function gal(d){pauseGal();const t=$('gtrack');if(t)t.scrollBy({left:d*t.clientWidth,behavior:'smooth'});}
+
+function shareProperty(){
+  if(!cur)return;
+  const url=location.origin+location.pathname+'#p'+cur.id;
+  const st=STATUS[cur.status]||STATUS.sale;
+  const codeTag=cur.code?'[CODE NO. '+cur.code+'] ':'';
+  const data={title:cur.title,text:codeTag+'['+st.label+'] '+cur.title+' - '+cur.price+' | ကိုအောင်မြင့်နိုင် '+PHONE_DISPLAY,url};
+  if(navigator.share)navigator.share(data).catch(()=>copyToClipboard(url));
+  else copyToClipboard(url);
+}
+function copyToClipboard(text){
+  const fb=()=>{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);showToast('✅ ကူးယူပြီး');};
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(text).then(()=>showToast('✅ ကူးယူပြီး')).catch(fb);else fb();
+}
+function flyToFromDetail(){
+  if(!cur)return;const p=cur;
+  if(!p.lat||!p.lng)return showToast('📍 တည်နေရာ မထည့်ရသေးပါ');
+  closeDetail();
+  if(!filtered.includes(p)){activeWard='all';activeStatus='all';searchText='';$('search').value='';renderChips();applyFilters(false);}
+  setView('map');
+  setTimeout(()=>selectIdx(filtered.indexOf(p),{scroll:true,fly:true}),250);
+}
+function openFromHash(){
+  if(location.hash.startsWith('#p')){
+    const id=parseInt(location.hash.slice(2));
+    if(properties.find(p=>p.id===id))setTimeout(()=>openDetail(id,false),300);
+  }
+}
+function showToast(msg){
+  const o=document.querySelector('.toast');if(o)o.remove();
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+}
+
+/* ===== ADMIN ===== */
+function applyAdminUI(){const b=$('lock-btn');b.textContent=IS_ADMIN?'🚪':'🔒';b.classList.toggle('out',IS_ADMIN);}
+function toggleLogin(){
+  if(IS_ADMIN){if(confirm('Logout ထွက်ရန် သေချာပါသလား?')){try{localStorage.removeItem(AUTH_KEY);}catch(e){}location.reload();}}
+  else{const o=$('login');o.classList.toggle('show');if(o.classList.contains('show')){$('l-err').textContent='';$('l-user').value='';$('l-pass').value='';setTimeout(()=>$('l-user').focus(),200);}}
+}
+function doLogin(){
+  const u=$('l-user').value.trim(),p=$('l-pass').value,err=$('l-err');
+  if(!u||!p){err.textContent='❌ ဖြည့်ပါ';return;}
+  if(u===ADMIN_USER&&p===ADMIN_PASS){
+    try{localStorage.setItem(AUTH_KEY,"yes");}catch(e){}
+    IS_ADMIN=true;$('login').classList.remove('show');applyAdminUI();
+    if(cur)openDetail(cur.id,false);
+    showToast('✅ Login အောင်မြင်');
+  }else{err.textContent='❌ မှားနေပါသည်';$('l-pass').value='';}
+}
+
+/* ===== PHONE / VIBER ===== */
+function envInfo(){
+  const ua=navigator.userAgent||"";
+  const inApp=/FBAN|FBAV|FB_IAB|Instagram|Line|Viber|Twitter|TikTok/i.test(ua);
+  const touch=matchMedia('(hover: none) and (pointer: coarse)').matches;
+  return{inApp,desktop:!touch&&!/Android|iPhone|iPad|iPod|Mobile/i.test(ua)};
+}
+function makeCall(e,custom){
+  if(e){e.preventDefault();e.stopPropagation();}
+  const target=custom||PHONE,env=envInfo();
+  if(env.desktop){copyToClipboard(target);showPhoneDialog(custom||PHONE_DISPLAY,"💻 PC ဖြစ်နေလို့ တိုက်ရိုက် ခေါ်လို့ မရပါ။<br>နံပါတ် Copy ကူးပြီးပါပြီ။");return false;}
+  if(env.inApp){showPhoneDialog(custom||PHONE_DISPLAY,"📱 Browser က ဖုန်းခေါ်ခွင့် မပြုပါ။<br><br>ညာဘက်အပေါ် ⋮ → Open in Chrome");return false;}
+  window.location.href="tel:"+target;return false;
+}
+function openViber(e){
+  if(e){e.preventDefault();e.stopPropagation();}
+  const env=envInfo();
+  if(env.desktop){copyToClipboard(PHONE);showPhoneDialog(PHONE_DISPLAY,"💻 ကွန်ပျူတာ ဖြစ်နေလို့ Viber app ဖွင့်လို့ မရပါ။<br><br>ဖုန်းနံပါတ်ကို Copy ကူးပြီးပါပြီ — Viber မှာ ရှာပါ။");return false;}
+  if(env.inApp){showPhoneDialog(PHONE_DISPLAY,'📱 လက်ရှိ browser က Viber ဖွင့်ခွင့် မပြုပါ။<br><br>ညာဘက်အပေါ် <b>⋮</b> → <b>"Open in Chrome"</b>');return false;}
+  window.location.href="viber://chat?number="+encodeURIComponent(VIBER_NUMBER);
+  setTimeout(()=>{if(!document.getElementById('phone-dialog')&&!document.hidden)showPhoneDialog(PHONE_DISPLAY,"📱 Viber app မဖွင့်နိုင်ပါ။<br><br>Viber ရှိရင် ဒီနံပါတ်ကို ရှာပါ —");},2500);
+  return false;
+}
+function showPhoneDialog(phone,message){
+  const old=$('phone-dialog');if(old)old.remove();
+  const d=document.createElement('div');d.id='phone-dialog';
+  d.innerHTML='<div style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:\'Pyidaungsu\',Arial,sans-serif;"><div style="background:#fff;border-radius:16px;padding:22px;max-width:340px;width:100%;text-align:center;"><div style="font-size:38px;margin-bottom:10px;">📞</div><div style="font-size:13px;color:#444;line-height:1.7;margin-bottom:14px;">'+message+'</div><div style="background:#f0f6f1;border-radius:10px;padding:12px;margin-bottom:14px;font-size:18px;font-weight:bold;color:#1b6b3a;">'+phone+'</div><div style="display:flex;gap:8px;"><button onclick="copyToClipboard(\''+PHONE+'\')" style="flex:1;padding:11px;background:#1b6b3a;color:#fff;border:none;border-radius:9px;font-weight:bold;font-size:13px;font-family:inherit;">📋 Copy</button><button onclick="document.getElementById(\'phone-dialog\').remove()" style="flex:1;padding:11px;background:#eee;color:#333;border:none;border-radius:9px;font-weight:bold;font-size:13px;font-family:inherit;">ပိတ်</button></div></div></div>';
+  document.body.appendChild(d);
+}
+
+/* ===== VISITOR ===== */
+async function initVisitorCount(){
+  const el=$('visitor');
+  try{
+    const res=await fetchWithTimeout('https://abacus.jasoncameron.dev/hit/monywa-realestate-mmr/visits',5000);
+    if(!res.ok)throw new Error('HTTP');
+    const d=await res.json();const n=Number(d.value);if(isNaN(n))throw new Error('BAD');
+    el.textContent=(n+COUNT_OFFSET).toLocaleString();dashDirty=true;return;
+  }catch(e){console.warn('visitor api failed');}
+  try{
+    let n=parseInt(localStorage.getItem(VISIT_FALLBACK_KEY)||'0');
+    n+=1;localStorage.setItem(VISIT_FALLBACK_KEY,String(n));
+    el.textContent=(n+COUNT_OFFSET).toLocaleString();
+  }catch(e){el.textContent='—';}
+  dashDirty=true;
+}
+
+/* ===== DASHBOARD ===== */
+function buildDashboard(){
+  dashDirty=false;
+  const total=properties.length;
+  const by={};Object.keys(STATUS).forEach(k=>by[k]=properties.filter(p=>p.status===k).length);
+  const stat=[['မြေကွက် စုစုပေါင်း',total,'ကွက်','#b8860b','🏠'],['ရောင်းရန်',by.sale,'ကွက်','#1b6b3a','🟢'],['ဌားရန်',by.rent,'ကွက်','#1976d2','🔵'],['ဝင်ကြည့်သူ',$('visitor').textContent,'ကြိမ်','#8e24aa','👁️']];
+  let h='<div class="st">📈 အကျဉ်းချုပ်</div><div class="stats">'+stat.map(s=>'<div class="sc"><small>'+s[4]+' '+s[0]+'</small><b style="color:'+s[3]+'">'+esc(s[1])+'</b><span>'+s[2]+'</span></div>').join('')+'</div>';
+  h+='<div class="st">🎯 အခြေအနေ</div><div class="panel">'+Object.entries(STATUS).map(([k,s])=>{const c=by[k],pct=total?Math.round(c/total*100):0;return '<div class="row"><div class="tp"><span>'+s.icon+' '+s.label+'</span><span>'+c+' ('+pct+'%)</span></div><div class="bar"><i style="width:'+pct+'%;background:'+s.color+'"></i></div></div>';}).join('')+'</div>';
+  const wp={};properties.forEach(p=>{if(!p.ward)return;(wp[p.ward]=wp[p.ward]||[]).push(p.priceNum);});
+  const wa=Object.entries(wp).map(([ward,a])=>({ward,avg:Math.round(a.reduce((x,y)=>x+y,0)/a.length),min:Math.min(...a),max:Math.max(...a),count:a.length})).sort((a,b)=>b.avg-a.avg);
+  h+='<div class="st">💰 ရပ်ကွက်အလိုက် ဈေးနှုန်း</div><div class="panel">';
+  if(wa.length){
+    const mx=wa[0].avg,hi=wa[0],lo=wa[wa.length-1];
+    h+='<div class="sum">📊 <strong>'+esc(hi.ward)+'</strong> — အကြီးဆုံး ('+hi.avg.toLocaleString()+')<br>📉 <strong>'+esc(lo.ward)+'</strong> — အသေးဆုံး ('+lo.avg.toLocaleString()+')</div>';
+    h+=wa.map(w=>{const pct=mx?Math.round(w.avg/mx*100):0;return '<div class="row"><div class="tp"><span>📍 '+esc(w.ward)+'</span><span class="pn">သိန်း '+w.avg.toLocaleString()+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="tp" style="margin-top:3px;font-size:10px;color:var(--mut)"><span>'+w.min.toLocaleString()+' — '+w.max.toLocaleString()+'</span><span>'+w.count+' ကွက်</span></div></div>';}).join('');
+  }
+  h+='</div>';
+  const sale=properties.filter(p=>p.status==='sale'),wc={};sale.forEach(p=>{if(p.ward)wc[p.ward]=(wc[p.ward]||0)+1;});
+  const wl=Object.entries(wc).sort((a,b)=>b[1]-a[1]),mxs=wl.length?wl[0][1]:1;
+  h+='<div class="st">📍 ရပ်ကွက်အလိုက် ရောင်းရန် ('+sale.length+' ကွက်)</div><div class="panel">'+(wl.length?wl.map(([w,c])=>'<div class="row"><div class="tp"><span>📍 '+esc(w)+'</span><span>'+c+' ကွက်</span></div><div class="bar"><i style="width:'+Math.round(c/mxs*100)+'%"></i></div></div>').join(''):'<p style="color:#999;text-align:center;padding:14px;font-size:12px">မရှိသေးပါ</p>')+'</div>';
+  const rent=properties.filter(p=>p.status==='rent');
+  h+='<div class="st">🔵 ဌားရန်ရှိ</div><div class="panel">'+(rent.length?rent.map(p=>'<div class="ri" data-id="'+p.id+'"><img src="'+esc(thumbOf(p))+'" loading="lazy" alt="" onerror="this.onerror=null;this.src=NOIMG"><div><b>'+(p.code?'[CODE NO. '+esc(p.code)+'] ':'')+esc(p.title)+'</b><span>📍 '+esc(p.ward)+'</span></div><span class="p">'+esc(p.price)+'</span></div>').join(''):'<p style="color:#999;text-align:center;padding:14px;font-size:12px">မရှိသေးပါ</p>')+'</div>';
+  const all={};properties.forEach(p=>{if(p.ward)all[p.ward]=(all[p.ward]||0)+1;});
+  const top=Object.entries(all).sort((a,b)=>b[1]-a[1]).slice(0,5),mt=top.length?top[0][1]:1,medals=["🥇","🥈","🥉"];
+  h+='<div class="st">🔥 မြေကွက်အများဆုံး ရပ်ကွက်</div><div class="panel">'+top.map(([w,c],i)=>'<div class="row"><div class="tp"><span>'+(medals[i]||'📍')+' '+esc(w)+'</span><span>'+c+' ကွက်</span></div><div class="bar"><i style="width:'+Math.round(c/mt*100)+'%;background:linear-gradient(90deg,#1b6b3a,#d4a017)"></i></div></div>').join('')+'</div>';
+  $('dash').innerHTML=h;
+}
+
+/* ===== EVENTS ===== */
+function bindUI(){
+  const wcb=$('ward-chips');
+  wcb.addEventListener('touchstart',pauseWard,{passive:true});
+  wcb.addEventListener('mousedown',pauseWard,{passive:true});
+  wcb.addEventListener('wheel',pauseWard,{passive:true});
+  wcb.addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;activeWard=b.dataset.v;renderChips();applyFilters(true);});
+  $('status-chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;activeStatus=b.dataset.v;renderChips();applyFilters(true);});
+  let deb;
+  $('search').addEventListener('input',e=>{clearTimeout(deb);deb=setTimeout(()=>{searchText=e.target.value.trim();applyFilters(true);},250);});
+  $('grid').addEventListener('click',e=>{const c=e.target.closest('.lc');if(c)openDetail(+c.dataset.id);});
+  $('dash').addEventListener('click',e=>{const c=e.target.closest('.ri');if(c)openDetail(+c.dataset.id);});
+  const tr=$('ctrack');
+  tr.addEventListener('click',e=>{const c=e.target.closest('.mc');if(c){stopTour();openDetail(+c.dataset.id);}});
+  tr.addEventListener('touchstart',()=>{stopTour();pauseAuto();},{passive:true});
+  tr.addEventListener('mousedown',pauseAuto,{passive:true});
+  tr.addEventListener('wheel',pauseAuto,{passive:true});
+  tr.addEventListener('scroll',()=>{clearTimeout(scDeb);scDeb=setTimeout(detectCentered,160);},{passive:true});
+  $('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeDetail();});
+  document.querySelectorAll('#l-user,#l-pass').forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
+  document.addEventListener('keydown',e=>{if(!cur)return;if(e.key==='Escape')closeDetail();if(e.key==='ArrowRight')gal(1);if(e.key==='ArrowLeft')gal(-1);});
+  window.addEventListener('hashchange',()=>{
+    if(location.hash.startsWith('#p')){const id=parseInt(location.hash.slice(2));if(properties.find(p=>p.id===id))openDetail(id,false);}
+    else{if($('modal').classList.contains('open'))closeDetail();}
+  });
+}
+
+/* ===== BOOT ===== */
+async function boot(){
+  console.log('🚀 App boot — Leaflet:',typeof L);
+  applyAdminUI();
+  bindUI();
+  $('grid').innerHTML='<div class="sk"></div>'.repeat(6);
+
+  /* Marquee ကို ချက်ချင်း စတင် */
+  setTimeout(initMarquee,50);
+  setTimeout(initMarquee,400);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{setTimeout(initMarquee,100);});
+
+  let cached=null;
+  try{cached=localStorage.getItem(CACHE_KEY);}catch(e){}
+  if(cached){try{setData(cached);console.log('📦 Loaded from cache');}catch(e){console.warn('cache parse error',e);}}
+
+  if(typeof L!=='undefined')initMap();
+  else{
+    console.warn('⏳ Leaflet မရောက်သေး');
+    setTimeout(()=>{
+      if(typeof L!=='undefined')initMap();
+      else{$('mapload').textContent='⚠️ မြေပုံ library ဖွင့်လို့ မရပါ\nအင်တာနက် စစ်ပြီး reload လုပ်ပါ';$('mapload').classList.add('err');}
+    },1000);
+  }
+
+  startAutoSlide();
+  requestAnimationFrame(wardLoop);
+  setTimeout(initVisitorCount,300);
+  openFromHash();
+  if(!IS_ADMIN&&urlAdmin)setTimeout(toggleLogin,500);
+
+  if(USE_SAMPLE_DATA)return;
+
+  try{
+    const res=await fetchWithTimeout(SHEET_URL+'&t='+Date.now(),10000);
+    console.log('📥 Sheet response:',res.status);
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const txt=await res.text();
+    console.log('📥 CSV length:',txt.length);
+    if(txt.trim().startsWith('<!DOCTYPE')||txt.trim().startsWith('<html'))throw new Error('Sheet URL မှာ CSV မဟုတ်ဘူး');
+    if(txt!==cached){setData(txt);try{localStorage.setItem(CACHE_KEY,txt);}catch(e){}console.log('✅ Data loaded:',properties.length);}
+  }catch(err){
+    console.error('❌ Fetch failed:',err);
+    if(!cached){
+      $('grid').innerHTML='<div class="none">⚠️ Sheet ဆွဲယူလို့ မရပါ<br><br><b>အကြောင်းရင်း:</b> '+esc(err.message)+'<br><br><small style="opacity:.7;font-size:11px">F12 → Console ကြည့်ပါ</small></div>';
+      showToast('⚠️ Sheet ဆွဲယူလို့ မရပါ');
+    }
+  }
+}
+
+boot();
+</script>
+</body>
+</html>
