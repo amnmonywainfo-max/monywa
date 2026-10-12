@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#1b6b3a">
 <title>မုံရွာ အိမ်ခြံမြေ အကျိုးဆောင် ကိုအောင်မြင့်နိုင်</title>
-<link rel="preconnect" href="https://unpkg.com" crossorigin>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{--g:#1b6b3a;--gd:#14522c;--gold:#d4a017;--red:#d32f2f;--blue:#1976d2;--viber:#7360F2;--bg:#f4f6f4;--line:#e5e7eb;--mut:#6b7280;--sh:0 2px 10px rgba(0,0,0,.12)}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -274,7 +274,7 @@ nav{display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const SHEET_URL="https://docs.google.com/spreadsheets/d/1dkVw7mnbkqSO9B9NCH1b5OiPbNJ2DXvqjbYuT8DvSVI/export?format=csv";
 const USE_SAMPLE_DATA=false;
@@ -295,7 +295,6 @@ const ALBUMIMG="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* မြန်မာဂဏန်း → အင်္ဂလိပ်ဂဏန်း */
 function mmToEn(s){if(s==null)return s;const mm='၀၁၂၃၄၅၆၇၈၉',en='0123456789';return String(s).replace(/[၀-၉]/g,d=>en[mm.indexOf(d)]);}
 
 let properties=[],filtered=[],activeWard='all',activeStatus='all',searchText='';
@@ -304,7 +303,6 @@ let IS_ADMIN=false;try{IS_ADMIN=localStorage.getItem(AUTH_KEY)==="yes"}catch(e){
 let activeIdx=0,dashDirty=true,curView='map';
 const urlAdmin=new URLSearchParams(location.search).get('admin')==='1'||location.hash==='#admin';
 
-/* ===== MARQUEE — အမြဲ ပြေး ===== */
 function initMarquee(){
   const el=$('brand-title');
   if(!el)return;
@@ -315,7 +313,6 @@ function initMarquee(){
   el.classList.add('running');
 }
 
-/* ===== SAMPLE PHOTO ===== */
 const SAMPLE_VIEWS=['Front view','Side view','Road side','Full plot','Back view','Surroundings','Road access','Soil view','Evening view','Far view'];
 const sampleCache=new Map();
 function makeSamplePhoto(id,i){
@@ -345,7 +342,6 @@ function makeSamplePhoto(id,i){
 }
 function pic(u){if(typeof u==='string'&&u.startsWith('sample:')){const a=u.split(':');return makeSamplePhoto(+a[1],+a[2]);}return u||NOIMG;}
 
-/* ===== CSV ===== */
 function parseCSVText(t){
   const rows=[];let row=[],cur='',q=false;
   for(let i=0;i<t.length;i++){
@@ -408,10 +404,13 @@ async function fetchWithTimeout(url,ms){
   catch(e){clearTimeout(t);throw e;}
 }
 
-/* ===== MAP ===== */
 function initMap(){
   if(map)return;
-  if(typeof L==='undefined'){$('mapload').textContent='⚠️ မြေပုံ library ဖွင့်လို့ မရပါ';$('mapload').classList.add('err');return;}
+  if(typeof L==='undefined'){
+    $('mapload').textContent='⚠️ မြေပုံ library ဖွင့်လို့ မရပါ — အင်တာနက် စစ်ပါ';
+    $('mapload').classList.add('err');
+    return;
+  }
   try{
     map=L.map('map',{zoomControl:false}).setView([22.1087,95.1358],13);
     L.control.zoom({position:'topright'}).addTo(map);
@@ -423,7 +422,10 @@ function initMap(){
     map.on('dragstart',()=>{stopTour();pauseAuto()});
     const ml=$('mapload');if(ml)ml.style.display='none';
     renderMarkers();fitMap();
-  }catch(err){$('mapload').textContent='⚠️ မြေပုံ ဖွင့်လို့ မရပါ: '+err.message;$('mapload').classList.add('err');}
+  }catch(err){
+    $('mapload').textContent='⚠️ မြေပုံ ဖွင့်လို့ မရပါ: '+err.message;
+    $('mapload').classList.add('err');
+  }
 }
 function switchLayer(){
   if(!map)return;
@@ -464,7 +466,6 @@ function fitMap(){
   else if(pts.length===1)map.flyTo([pts[0].lat,pts[0].lng],15,{duration:.6});
 }
 
-/* ===== FILTERS ===== */
 function renderChips(){
   const wards=[...new Set(properties.map(p=>p.ward).filter(Boolean))].sort();
   let h='<button class="chip '+(activeWard==='all'?'on':'')+'" data-v="all">📍 အားလုံး <em>'+properties.length+'</em></button>';
@@ -491,7 +492,6 @@ function applyFilters(fit){
   if(fit)fitMap();
 }
 
-/* ===== LIST + CAROUSEL ===== */
 function renderList(){
   if(!filtered.length){$('grid').innerHTML='<div class="none">🔍 ရှာဖွေမှု မတွေ့ပါ</div>';return;}
   $('grid').innerHTML=filtered.map(p=>{
@@ -528,7 +528,6 @@ function detectCentered(){
   if(best!==activeIdx)selectIdx(best,{fly:true});
 }
 
-/* ===== TOUR ===== */
 let tourTimer=null;
 function toggleTour(){tourTimer?stopTour(true):startTour();}
 function startTour(){
@@ -545,7 +544,6 @@ function stopTour(msg){
   if(msg===true)showToast('⏸️ ရပ်');
 }
 
-/* ===== AUTO SLIDE ===== */
 let autoTimer=null,autoPausedUntil=0;
 function pauseAuto(){autoPausedUntil=Date.now()+6000;}
 function startAutoSlide(){
@@ -557,7 +555,6 @@ function startAutoSlide(){
   },5000);
 }
 
-/* ===== WARD LOOP ===== */
 let wardPos=0,wardDir=1,wardHold=0,wardPausedUntil=0,wardLast=0;
 function pauseWard(){wardPausedUntil=Date.now()+6000;}
 function wardLoop(t){
@@ -575,7 +572,6 @@ function wardLoop(t){
   el.scrollLeft=wardPos;
 }
 
-/* ===== VIEWS ===== */
 function setView(v){
   curView=v;if(v!=='map')stopTour();
   document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
@@ -585,7 +581,6 @@ function setView(v){
   if(v==='dash'&&dashDirty)buildDashboard();
 }
 
-/* ===== DETAIL ===== */
 let cur=null;
 function openDetail(id,pushHash){
   const p=properties.find(x=>x.id===id);if(!p)return;cur=p;
@@ -674,7 +669,6 @@ function showToast(msg){
   document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
 }
 
-/* ===== ADMIN ===== */
 function applyAdminUI(){const b=$('lock-btn');b.textContent=IS_ADMIN?'🚪':'🔒';b.classList.toggle('out',IS_ADMIN);}
 function toggleLogin(){
   if(IS_ADMIN){if(confirm('Logout ထွက်ရန် သေချာပါသလား?')){try{localStorage.removeItem(AUTH_KEY);}catch(e){}location.reload();}}
@@ -691,7 +685,6 @@ function doLogin(){
   }else{err.textContent='❌ မှားနေပါသည်';$('l-pass').value='';}
 }
 
-/* ===== PHONE / VIBER ===== */
 function envInfo(){
   const ua=navigator.userAgent||"";
   const inApp=/FBAN|FBAV|FB_IAB|Instagram|Line|Viber|Twitter|TikTok/i.test(ua);
@@ -721,7 +714,6 @@ function showPhoneDialog(phone,message){
   document.body.appendChild(d);
 }
 
-/* ===== VISITOR ===== */
 async function initVisitorCount(){
   const el=$('visitor');
   try{
@@ -738,7 +730,6 @@ async function initVisitorCount(){
   dashDirty=true;
 }
 
-/* ===== DASHBOARD ===== */
 function buildDashboard(){
   dashDirty=false;
   const total=properties.length;
@@ -766,7 +757,6 @@ function buildDashboard(){
   $('dash').innerHTML=h;
 }
 
-/* ===== EVENTS ===== */
 function bindUI(){
   const wcb=$('ward-chips');
   wcb.addEventListener('touchstart',pauseWard,{passive:true});
@@ -793,14 +783,12 @@ function bindUI(){
   });
 }
 
-/* ===== BOOT ===== */
 async function boot(){
   console.log('🚀 App boot — Leaflet:',typeof L);
   applyAdminUI();
   bindUI();
   $('grid').innerHTML='<div class="sk"></div>'.repeat(6);
 
-  /* Marquee ကို ချက်ချင်း စတင် */
   setTimeout(initMarquee,50);
   setTimeout(initMarquee,400);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{setTimeout(initMarquee,100);});
@@ -815,7 +803,7 @@ async function boot(){
     setTimeout(()=>{
       if(typeof L!=='undefined')initMap();
       else{$('mapload').textContent='⚠️ မြေပုံ library ဖွင့်လို့ မရပါ\nအင်တာနက် စစ်ပြီး reload လုပ်ပါ';$('mapload').classList.add('err');}
-    },1000);
+    },1500);
   }
 
   startAutoSlide();
